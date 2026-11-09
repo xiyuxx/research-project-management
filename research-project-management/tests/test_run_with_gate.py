@@ -73,7 +73,8 @@ class RunWithGateTests(unittest.TestCase):
 
     def test_command_exit_code_propagates(self):
         process = self.invoke(command=[sys.executable, "-c", "raise SystemExit(7)"])
-        self.assertEqual(process.returncode, 7)
+        self.assertEqual(process.returncode, 7,
+                         (process.stdout, process.stderr))
 
 
 if __name__ == "__main__":
