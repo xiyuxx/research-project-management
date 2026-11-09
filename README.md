@@ -4,7 +4,7 @@
 
 An Agent Skill for chat-driven research project management: grouped experiments, immutable configuration evidence, an append-only history, and a pre-execution configuration gate. Linux/macOS only.
 
-本仓库只分发一个 Skill。可安装内容全部在 [`research-project-management/`](research-project-management/) 内；外层只保留 README、LICENSE、CHANGELOG 和 GitHub 配置。安装或分发时只需要这个文件夹。
+本仓库只分发一个 Skill。可安装内容全部在 [`research-project-management/`](research-project-management/) 内；外层只保留 README、LICENSE 和 GitHub 配置。安装或分发时只需要这个文件夹。
 
 ## 平台与依赖
 
@@ -86,7 +86,6 @@ python tools/check_config.py \
 .
 ├── README.md
 ├── LICENSE
-├── CHANGELOG.md
 ├── .gitattributes
 ├── .gitignore
 ├── .github/workflows/test.yml

@@ -107,15 +107,6 @@ def locked():
         finally:
             fcntl.flock(handle, fcntl.LOCK_UN)
 
-@contextmanager
-def group_locked():
-    with (LEDGER / ".group.lock").open("a") as handle:
-        fcntl.flock(handle, fcntl.LOCK_EX)
-        try:
-            yield
-        finally:
-            fcntl.flock(handle, fcntl.LOCK_UN)
-
 
 def groups():
     result, seen = [], set()
@@ -155,7 +146,7 @@ def group_new(args):
     title = scalar(args.title)
     if not title:
         fail("研究组标题不能为空")
-    with locked(), group_locked():
+    with locked():
         existing = groups()
         counter = LEDGER / ".next-group-id"
         number = next_number(counter, [int(GROUP.fullmatch(p.name).group(1)) for p in existing])
