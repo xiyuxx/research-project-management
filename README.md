@@ -1,119 +1,93 @@
 # research-project-management
 
-通过人与 AI 的聊天，从空目录建立并推进科研项目：按研究问题分组实验，保存真实配置、环境与探索历史，维护当前快照和追加式变更日志，并在训练/评估前核验真正生效的配置。
+一个 Agent Skill：把聊天里冒出来的实验想法变成能回溯的记录，并在真正开跑之前拦住"名字和参数对不上"的情况。
 
-An Agent Skill for chat-driven research project management: grouped experiments, immutable configuration evidence, an append-only history, and a pre-execution configuration gate. Linux/macOS only.
+## 为什么需要
 
-本仓库只分发一个 Skill。可安装内容全部在 [`research-project-management/`](research-project-management/) 内；外层只保留 README、LICENSE 和 GitHub 配置。安装或分发时只需要这个文件夹。
+跑实验时最难的不是写训练脚本，而是三周后回答不了"这次和上次到底差在哪"：参数散在 shell 历史、配置文件和日志里；文件名写着 `lr-1e-3`，实际跑的是 5e-4；为了记住一个决定，顺手把旧记录改得和当时不一样。
 
-## 平台与依赖
+这个 Skill 用一套固定结构处理这三件事：
 
-- Linux 或 macOS（台账使用 POSIX 文件锁）；Windows 不受支持
-- Python 3.10+
-- 无第三方依赖
-- 工具不联网、不启动训练；只读写用户指定的项目目录
+- **一次尝试一份 `EXP-*.md`**：计划与实际参数、完整生效配置、代码与环境、命令、评估口径、日志与证据，历史只追加不改写。
+- **按研究问题分组**：组里只维护共同条件、探索变量和当前判断，单次细节留在 EXP。
+- **执行前核验**：从真实执行入口导出最终配置，与声明逐字段比对，不一致就不启动命令。
 
-## 只获取 Skill 文件夹
+## 一次回合
 
-GitHub 网页不支持直接下载子目录。二选一：
+> 用户：「baseline 跑通了，lr 1e-3 后期 loss 抖得厉害，帮我试一下 5e-4，其他不动。」
 
-```sh
-# 稀疏检出：只取 Skill 目录
-git clone --depth 1 --filter=blob:none --sparse <仓库地址> rp-skill
-cd rp-skill
-git sparse-checkout set research-project-management
-```
-
-或者下载整仓 zip，只复制其中的 `research-project-management/` 文件夹。
+AI 读完当前状态后建档，得到 `EXP-0002-optimizer-lr-5e-4`，附一份编号绑定的不可变预期快照；训练前导出真实生效配置并过门禁；跑完把实际结果写进 EXP、追加 CHANGELOG、更新 CURRENT。完整文本见 [examples/first-round.md](research-project-management/examples/first-round.md)。
 
 ## 安装
 
-`SKILL.md` 中的 `name` 必须与安装目录同名。
+要求 Linux 或 macOS（台账使用 POSIX 文件锁）、Python 3.10+、无第三方依赖。`SKILL.md` 的 `name` 必须与安装目录同名。
 
 ```sh
 git clone <仓库地址> rp-skill
 cd rp-skill/research-project-management
 
-# Claude Code
 mkdir -p ~/.claude/skills
 ln -sfn "$PWD" ~/.claude/skills/research-project-management
-
-# omp 或其他使用 Agent Skills 目录约定的宿主
-mkdir -p ~/.omp/agent/skills
-ln -sfn "$PWD" ~/.omp/agent/skills/research-project-management
 ```
 
-若宿主只支持复制安装，将 `research-project-management/` 整个复制为 `<skills-dir>/research-project-management/`。
+其他支持 Agent Skills 目录约定的宿主同理（omp 用 `~/.omp/agent/skills`）；宿主只支持复制安装时，把整个 `research-project-management/` 复制过去即可。只需要这个目录，仓库外层的 README 与 CI 配置不参与运行。
 
 ## 快速开始
 
-以下命令在 `research-project-management/`（Skill 目录）内执行。
-
 ```sh
-python scripts/init_project.py ~/research/demo --name "Demo" --dry-run
+# 1. 初始化一个空目录（--dry-run 只预览将写入的文件）
 python scripts/init_project.py ~/research/demo --name "Demo"
-
 cd ~/research/demo
+
+# 2. 建组、建档；声明里的 changes 会变成不可变预期快照
 python tools/research.py group-new --slug learning-rate --title "学习率探索"
-python tools/research.py new --group GRP-001 --slug baseline --title "基线核对"
-python tools/research.py reindex
-```
-
-按预期配置建档并生成实验名：
-
-```sh
 cat > expected.json <<'JSON'
-{"experiment_id": "auto", "changes": {"optimizer.lr": 0.001}}
+{"experiment_id": "auto", "changes": {"optimizer.lr": 0.0005, "training.seed": 42}}
 JSON
 python tools/research.py new --group GRP-001 --expected expected.json \
-  --title "学习率对照" --name-field optimizer.lr --label optimizer.lr=lr
+  --title "lr 5e-4 对照" --name-field optimizer.lr --label optimizer.lr=lr
+
+# 3. 执行前门禁：0 才启动后面的命令，1/2 直接拒绝
+python tools/run_with_gate.py \
+  --expected experiments/GRP-001-learning-rate/EXP-0001-optimizer-lr-5e-4/config.expected.json \
+  --effective runs/EXP-0001-optimizer-lr-5e-4/config.effective.json \
+  --receipt runs/EXP-0001-optimizer-lr-5e-4/config.check.json \
+  -- python train.py --config configs/run.yaml
 ```
 
-执行前配置门禁：
+`new` 只建台账，不启动训练；`run_with_gate.py` 只负责"检查后启动或不启动"，不认证进程身份，也不代表你已经授权这次执行。只想核验时改用 `tools/check_config.py`。
 
-```sh
-python tools/check_config.py \
-  --expected <预期快照> \
-  --effective <真实入口导出的生效配置> \
-  --receipt <新的检查报告>
-```
-
-退出码 `0` 只表示声明字段匹配；`1`/`2` 必须阻止正式计算。检查器不认证进程身份，也不能证明实现语义正确。
-
-## 目录结构
+## 目录
 
 ```text
 .
 ├── README.md
+├── CHANGELOG.md
 ├── LICENSE
-├── .gitattributes
-├── .gitignore
 ├── .github/workflows/test.yml
-└── research-project-management/   # 只需要分发这个目录
-    ├── SKILL.md                   # Skill 入口与工作流
-    ├── references/config-check.md # 配置门禁的输入契约与操作顺序
-    ├── scripts/init_project.py    # 初始化项目（仅 POSIX）
-    ├── scripts/check_config.py    # 配置比对与报告
-    ├── assets/project/            # 初始化模板：AGENTS/CURRENT/CHANGELOG/experiments 等
-    └── tests/                     # 行为测试
+└── research-project-management/        # 分发时只需要这个目录
+    ├── SKILL.md                        # 工作流与硬规则
+    ├── examples/first-round.md         # 一个完整回合的成品形态
+    ├── references/config-check.md      # 门禁的输入契约与操作顺序
+    ├── scripts/init_project.py         # 初始化（仅 POSIX）
+    ├── scripts/check_config.py         # 声明 vs 生效配置比对
+    ├── scripts/run_with_gate.py        # 通过才启动命令
+    ├── assets/project/                 # 初始化模板
+    └── tests/                          # 行为测试
 ```
 
-初始化后的项目由 `AGENTS.md`、`CURRENT.md`、`CHANGELOG.md`、`experiments/GRP-*/` 和每个 `EXP-*.md` 组成。`INDEX.md`、`NEXT.md`、`registry.json` 是可重建的派生视图；`EXP-*.md` 才是实验事实源。
+初始化后的项目里，`EXP-*.md` 是唯一事实源；`INDEX.md`、`NEXT.md`、`registry.json` 和 `ledger:` 标记区块都是可重建的派生视图。
 
-## 开发与测试
+## 已知边界
 
-```sh
-python -m unittest discover -s research-project-management/tests -v
-```
+- 只支持 Linux/macOS；Windows 需要替换台账的文件锁实现。
+- 不联网、不下载数据、不自动启动训练或外部提交。
+- 配置门禁只比对声明字段与两个输入文件；拿不到真实导出时技能会要求记"未核验"并停下，但无法替你验证导出文件真的来自那个进程。
+- 升级 Skill 不会改写已初始化的项目；迁移需要显式操作。
 
-CI 在 `ubuntu-latest` 上覆盖 Python 3.10 与 3.12，并实际执行一次“初始化已存在空目录 → 建组 → 建档 → reindex”。
+## 版本
 
-## 安全边界
-
-- 不发起网络请求，不下载模型或数据
-- 不自动启动训练、评估或外部提交；建档与检查不等于执行授权
-- 不覆盖既有报告；配置检查报告只新建，不替换历史证据
-- 台账与检查器不修改输入文件；写入使用临时文件与原子替换
+当前 0.2.0，变更见 [CHANGELOG.md](CHANGELOG.md)。初始化出的项目在 `AGENTS.md` 顶部记录所用版本，便于以后判断是否需要迁移。
 
 ## 许可
 

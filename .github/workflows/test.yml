@@ -26,3 +26,35 @@ jobs:
           python "$target/tools/research.py" new --group GRP-001 --slug baseline --title "Baseline"
           python "$target/tools/research.py" reindex
           python "$target/tools/research.py" list --json
+      - name: Exercise the configuration gate
+        run: |
+          target="$(mktemp -d)"
+          python research-project-management/scripts/init_project.py "$target" --name "Gate"
+          python - "$target" <<'PY'
+          import json, pathlib, sys
+          root = pathlib.Path(sys.argv[1])
+          expected = {"experiment_id": "EXP-0001",
+                      "changes": {"optimizer.lr": 0.001}}
+          effective = {"experiment_id": "EXP-0001",
+                       "config": {"optimizer": {"lr": 1e-3}}}
+          (root / "expected.json").write_text(json.dumps(expected))
+          (root / "effective.json").write_text(json.dumps(effective))
+          effective["config"]["optimizer"]["lr"] = 0.01
+          (root / "effective-mismatch.json").write_text(json.dumps(effective))
+          PY
+          python "$target/tools/run_with_gate.py" \
+            --expected "$target/expected.json" \
+            --effective "$target/effective.json" \
+            --receipt "$target/check.json" \
+            -- python -c "print('gate launched')"
+          test "$(python -c 'import json,sys;print(json.load(open(sys.argv[1]))["status"])' "$target/check.json")" = passed
+          set +e
+          python "$target/tools/run_with_gate.py" \
+            --expected "$target/expected.json" \
+            --effective "$target/effective-mismatch.json" \
+            --receipt "$target/check-mismatch.json" \
+            -- python -c "print('must not run')" > "$target/out.txt"
+          code=$?
+          set -e
+          test "$code" -eq 1
+          ! grep -q "must not run" "$target/out.txt"

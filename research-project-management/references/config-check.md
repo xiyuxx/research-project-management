@@ -11,7 +11,7 @@
 1. 从本轮聊天确定预期全局/局部参数、模块选择以及应保持不变的关键条件。准备 `experiment_id: "auto"` 的声明，通过 `research.py new --group ... --expected ...` 分配 EXP 编号并生成参数名及绑定该编号的 `config.expected.json` 快照。启动前必须使用 EXP 记录的 `expected_snapshot`，该文件既是命名来源，也是核验预期；保留原始声明。平铺旧记录用已有 EXP ID 新建预期声明并核对名称，不能修改旧记录/旧证据冒充原始计划。`changes` 包含所有要核对的关键条件，不仅是变化项；不能仅检查 LR 就声称完整环境与配置都已核验。
 2. 确认配置字段的实际含义及映射。使用训练器真正使用的字段路径，不自行把名称相似的字段视为同一项。已有配置对象用其真实导出能力；缺少能力时先接入真实执行入口，不造一个与 expected 相同的文件替代。
 3. 执行入口在默认值、配置文件、CLI 覆盖、自动推导及参数组/模块选择均完成后，从即将用于计算的实际对象导出 `config.effective.json`。保存同一次执行的 experiment_id、实际命令、代码版本/未提交差异与环境证据入口。不得把未加载的默认文件或 AI 手写的预期值称为生效配置。
-4. AI 主动调用检查器。实际执行器应在开始训练/评估计算前，以该检查器的退出码作为门禁；检查通过后不再覆盖受检条件。优先同一执行进程导出并检查，避免检查一个配置、再用另一个命令启动。模型/设备构造后才能确定的值，必须在开始优化或正式评估前核验；不要通过“预检”偷跑训练。
+4. 正式执行通过机械门禁：用 `run_with_gate.py` 包装启动命令，它在开始计算前先跑检查，未通过就不启动命令；检查通过后不再覆盖受检条件。优先同一执行进程导出并检查，避免检查一个配置、再用另一个命令启动。模型/设备构造后才能确定的值，必须在开始优化或正式评估前核验；不要通过“预检”偷跑训练。
 5. 仅退出码 0 表示声明字段匹配；继续执行仍须处于用户授权范围。退出码 1/2 必须停止启动并报告差异或缺失前提，不能自动改 expected、改名、忽略返回码或缩小检查范围来获得通过。
 6. 每次尝试使用独立证据目录，保存 expected、effective、receipt 及真实导出依据的路径。试验记录区分“检查通过”“实验已执行”“结果分析完成”；通过检查不代表已经运行或授权追加实验。
 
@@ -61,7 +61,19 @@
 
 ## 调用与退出码
 
-安装目录中的直接调用：
+正式执行用门禁包装（推荐），`--` 之后是要启动的命令：
+
+```sh
+python "$SKILL_DIR/scripts/run_with_gate.py" \
+  --expected "$ATTEMPT_DIR/config.expected.json" \
+  --effective "$ATTEMPT_DIR/config.effective.json" \
+  --receipt "$ATTEMPT_DIR/config.check.json" \
+  -- python train.py --config configs/run.yaml
+```
+
+门禁先打印检查报告，0 时启动命令并以其退出码结束；1/2 时不启动命令、只返回门禁码。另有 `--export-cmd "<shell 命令>"`，在检查前先执行导出步骤，导出失败同样不启动。它不改变输入文件，也不替你做授权判断。
+
+只核验、不启动命令时直接调用检查器：
 
 ```sh
 python "$SKILL_DIR/scripts/check_config.py" \
@@ -70,7 +82,7 @@ python "$SKILL_DIR/scripts/check_config.py" \
   --receipt "$ATTEMPT_DIR/config.check.json"
 ```
 
-新初始化项目已有相同检查器，也可调用 `python tools/check_config.py`。`SKILL_DIR` 是实际技能目录，`ATTEMPT_DIR` 是已存在的本次执行证据目录；调用前由 AI 按实际路径填写，不依赖这些变量预先存在。
+新初始化项目已有相同脚本，也可用 `python tools/run_with_gate.py` 与 `python tools/check_config.py`。`SKILL_DIR` 是实际技能目录，`ATTEMPT_DIR` 是已存在的本次执行证据目录；调用前由 AI 按实际路径填写，不依赖这些变量预先存在。
 
 - **0**：`status=passed`，声明字段匹配。
 - **1**：`status=mismatch`，实验 ID 不同、字段缺失或值/类型不同。

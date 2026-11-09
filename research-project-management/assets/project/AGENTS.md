@@ -1,10 +1,12 @@
 # {{PROJECT_NAME}}：协作约定
 
+> 本工作区由 research-project-management v{{SKILL_VERSION}} 初始化。升级 skill 不会自动改写已建项目；需要迁移时先备份、验证引用，再由用户明确授权。
+
 ## 聊天与授权
 
 研究由人与 AI 在聊天中推进。先读本文件、SETTINGS.md、CURRENT.md 和 experiments/INDEX.md，再按问题读取相关组 README、EXP 和 CHANGELOG；不预加载所有历史。先以最小对照验证价值，再根据证据补充归因和确认，不默认大型实验矩阵。AI 维护必要记录，报告有证据的现状并提出一个下一步；不要自动启动训练。
 
-训练、下载数据、外部提交或移动/删除旧产物前必须获得实际用户授权。CURRENT 的人工区维护当前授权、资源与禁止事项；没有记录不能推断已授权。
+训练、下载数据、外部提交或移动/删除旧产物前必须获得实际用户授权。CURRENT 的人工区维护当前授权、资源与禁止事项；没有记录不能推断已授权。本文件可以补充更严的规则，不能放宽 skill 的写入范围、证据底线或执行授权；冲突时以更严的一侧为准。
 
 ## 事实与生成区
 
@@ -20,7 +22,7 @@ CURRENT 的 `<!-- ledger:current:start -->` / `<!-- ledger:current:end -->` 是�
 
 - 聊天明确本次预期，保存含 experiment_id 和非空 changes 映射的 config.expected.json；按字段和值生成名称的分组建档可先用 `auto` 占位，使用建档后写入 EXP 的编号化不可变预期快照核验。
 - 必须从真实执行入口解析默认值、文件、CLI 覆盖和自动推导后的实际对象，导出 experiment_id 加 config 对象的 config.effective.json；不能手写副本或拿默认配置充数。
-- AI 必须调用 `python tools/check_config.py --expected <预期快照> --effective <生效文件> --receipt <新报告路径>`；每次执行保留独立输入和报告。
+- 正式执行走机械门禁：`python tools/run_with_gate.py --expected <预期快照> --effective <生效文件> --receipt <新报告路径> -- <启动命令>`；1/2 时门禁不启动命令。只核验不启动时用 `tools/check_config.py`。每次尝试保留独立输入和报告。
 - 实际执行器在正式计算前检查退出码：0 仅表示声明字段匹配，1/2 必须停止；通过后不可另行覆盖受检条件。检查不替代训练授权。
 - 无真实导出接口时明确未核验，补齐接口后再执行；不能凭名字或源码声称通过。输入契约见 tools/check_config.py 的 --help 及 skill 的配置检查参考。记录命令、代码、环境及证据；报告不认证进程身份或实现语义，也不代表实验已经运行或成功。
 

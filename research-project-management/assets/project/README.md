@@ -1,20 +1,25 @@
 # {{PROJECT_NAME}}
 
-这是人与 AI 通过聊天推进研究的管理框架，不包含模型、训练器或虚构实验。先读 [AGENTS.md](AGENTS.md)、[SETTINGS.md](SETTINGS.md)、[CURRENT.md](CURRENT.md) 和 [实验索引](experiments/INDEX.md)，再按需读相关组、EXP 与 [历史](CHANGELOG.md)。AI 记录必要事实、报告有依据的现状并提出一个下一步；先做最小对照，不默认大型实验矩阵或自动训练。
+这个目录是一份可按实验追溯的研究工作区：一次尝试一份 `EXP-*.md`，参数、环境、命令、日志和判断各归其位。记录在聊天中由 AI 维护，也可以直接手改。
 
-| 信息 | 权威位置 |
+## 从哪读起
+
+| 你想知道 | 看这里 |
 | --- | --- |
-| 当前全局配方、模块选定值、方向、授权和边界 | CURRENT.md 人工区 |
-| 当前研究设置和比较协议 | SETTINGS.md |
-| 当前主题问题、共同条件、变量及判断 | experiments/GRP-NNN-slug/README.md 人工区 |
-| 单次实验的实际条件、运行和证据 | 组内 EXP 或旧平铺 EXP |
-| 重要尝试、数据、判断变更和历史更正 | CHANGELOG.md，只追加 |
-| 台账索引和摘要 | INDEX、registry、NEXT、CURRENT 及组 README 生成区，均可重建 |
-| 深入解释、真实运行产物 | reviews/、runs/ 或显式 run_dir |
+| 现在在做什么、当前配方和授权 | `CURRENT.md` 人工区 |
+| 某次实验到底怎么跑的、结果如何 | `experiments/GRP-*/EXP-*.md`（唯一事实源） |
+| 某个决定何时、为什么改 | `CHANGELOG.md`（只追加） |
+| 比较协议、数据与指标口径 | `SETTINGS.md` |
+| AI 的读写规则、证据底线 | `AGENTS.md` |
 
-## 实验台账
+`INDEX.md`、`NEXT.md`、`registry.json` 和带 `ledger:` 标记的区块都是可重建的派生视图，别把它们当事实源。
+
+## 一次回合长什么样
+
+聊天里说「试试 lr 5e-4，其他不动」，AI 会先读 `CURRENT.md` 和当前组，然后建一份 EXP（附不可变预期快照）、从真实入口导出生效配置、过门禁、记录实际结果、追加 CHANGELOG、更新 CURRENT。你不用手动敲命令。
 
 ```sh
+# 只建台账，不启动训练
 python tools/research.py group-new --slug learning-rate --title "学习率探索"
 python tools/research.py new --group GRP-001 --expected config.expected.json --title "学习率对照"
 python tools/research.py list --json
@@ -23,20 +28,24 @@ python tools/research.py reindex
 python tools/research.py status
 ```
 
-命令仅示范接口，不代表实验或结论。组编号和全局唯一 EXP 编号由工具分配；组名为 `GRP-NNN-slug`。分组实验名根据预期文件的 `changes` 字段及其值生成，可用 `--label field=alias` 指定字段短名，否则使用规范化的完整字段名；数值使用统一表示。预期文件中的 experiment_id 可先写 `auto`，建档后使用 EXP 配套目录内编号化的不可变预期快照；原文件不改。名称必须与快照一致。主题尚未确定时可继续 `new --slug baseline --title "基线核对"` 建立平铺实验，旧平铺记录仍可读，不自动迁移。台账依赖 POSIX 文件锁，仅支持 Linux/macOS；需要 Python 3.10+。
+用 `--expected` 建档时，实验名由声明里的字段和值生成（`--name-field` 选展示字段，`--label` 起短名）；编号与名称以记录为准，不从文件名猜配置。`run_dir`、`code`、`config` 可用 `set` 登记，目录存在不代表进程存活。
 
-`new` 只建档，不启动训练；`--command` 只记录文本。`--code PATH --config PATH` 可快照真实配置。实际 run_dir 可用 `set EXP-0001 run_dir=/actual/path` 登记；目录存在、台账 running 不代表进程存活。`set --result` 只更新 EXP 结果生成区；`reindex` 更新派生视图，保留人工区域。结果和证据以 EXP 为准，不在组汇总重复手工维护。
+## 执行前门禁
 
-## 执行前配置检查
-
-依据 AGENTS 的门禁，从真实执行入口导出最终生效配置，并保留本次预期、生效文件和新报告：
+真实执行入口解析完默认值、配置文件和覆盖项后，导出最终配置，再让命令走门禁：
 
 ```sh
-python tools/check_config.py --expected <预期快照.json> --effective <生效配置.json> --receipt <新报告.json>
+python tools/run_with_gate.py \
+  --expected <EXP 记录目录>/config.expected.json \
+  --effective <尝试目录>/config.effective.json \
+  --receipt <尝试目录>/config.check.json \
+  -- python train.py --config configs/run.yaml
 ```
 
-输入契约见 `--help`。退出码 0 只表示声明字段匹配；1/2 均须阻止正式计算，通过后受检条件不可再覆盖。没有真实导出接口即未核验，不能用默认值或手写副本冒充。报告不能认证进程来源或替代用户授权，建档也不执行检查或训练。
+退出码 0 只表示声明字段匹配；1/2 时门禁不会启动命令。拿不到真实导出就记“未核验”并停下，不能手写生效文件充数。报告只证明输入文件一致，不证明进程身份或实现语义。
 
-## 既有项目
+## 边界
 
-已有项目不直接覆盖初始化；先在空目录生成参考，再人工选择增量引入。保留旧编号、平铺记录及产物，不推断旧任务语义；选择唯一写入口，不能与旧工具双写。不要覆盖旧正文或移动产物来适应新结构。
+- 初始化只建模板与工具，不产生实验、不训练、不联网。
+- 已有文件不覆盖；旧记录不自动迁移，迁移须明确授权。
+- 台账依赖 POSIX 文件锁，Linux/macOS 可用，需要 Python 3.10+。

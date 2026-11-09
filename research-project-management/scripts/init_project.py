@@ -3,6 +3,7 @@
 import argparse
 import os
 from pathlib import Path
+import re
 import shutil
 import sys
 import tempfile
@@ -26,10 +27,22 @@ def main():
     if not files:
         parser.error("技能缺少 assets/project 模板")
     checker = Path(__file__).with_name("check_config.py")
+    gate = Path(__file__).with_name("run_with_gate.py")
+    skill = Path(__file__).resolve().parents[1] / "SKILL.md"
     if not checker.is_file():
         parser.error("技能缺少 scripts/check_config.py")
+    if not gate.is_file():
+        parser.error("技能缺少 scripts/run_with_gate.py")
+    try:
+        declared = re.search(r"^version:\s*(\S+)\s*$", skill.read_text(encoding="utf-8"), re.M)
+    except OSError as exc:
+        parser.error("无法读取 SKILL.md 版本: %s" % exc)
+    if not declared:
+        parser.error("SKILL.md 缺少 version")
+    version = declared.group(1)
     sources = [(path, path.relative_to(source)) for path in files]
     sources.append((checker, Path("tools/check_config.py")))
+    sources.append((gate, Path("tools/run_with_gate.py")))
     # Refuse the entire operation before making even a temporary directory.
     if target.is_symlink() or (target.exists() and not target.is_dir()):
         parser.error("目标不是可初始化的普通目录: %s" % target)
@@ -51,7 +64,9 @@ def main():
         for path, relative in sources:
             destination = stage / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
-            text = path.read_text(encoding="utf-8").replace("{{PROJECT_NAME}}", args.name)
+            text = (path.read_text(encoding="utf-8")
+                    .replace("{{PROJECT_NAME}}", args.name)
+                    .replace("{{SKILL_VERSION}}", version))
             destination.write_text(text, encoding="utf-8")
         # Recheck after staging; rename cannot replace a nonempty directory.
         if target.is_symlink() or (target.exists() and
