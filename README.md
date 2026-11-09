@@ -45,27 +45,18 @@ ln -sfn "$PWD" ~/.claude/skills/research-project-management
 ## 快速开始
 
 ```sh
-# 1. 初始化一个空目录（--dry-run 只预览将写入的文件）
+# 初始化：只写模板与工具，不建实验、不训练（--dry-run 可先预览）
 python scripts/init_project.py ~/research/demo --name "Demo"
 cd ~/research/demo
-
-# 2. 建组、建档；声明里的 changes 会变成不可变预期快照
-python tools/research.py group-new --slug learning-rate --title "学习率探索"
-cat > expected.json <<'JSON'
-{"experiment_id": "auto", "changes": {"optimizer.lr": 0.0005, "training.seed": 42}}
-JSON
-python tools/research.py new --group GRP-001 --expected expected.json \
-  --title "lr 5e-4 对照" --name-field optimizer.lr --label optimizer.lr=lr
-
-# 3. 执行前门禁：0 才启动后面的命令，1/2 直接拒绝
-python tools/run_with_gate.py \
-  --expected experiments/GRP-001-learning-rate/EXP-0001-optimizer-lr-5e-4/config.expected.json \
-  --effective runs/EXP-0001-optimizer-lr-5e-4/config.effective.json \
-  --receipt runs/EXP-0001-optimizer-lr-5e-4/config.check.json \
-  -- python train.py --config configs/run.yaml
 ```
 
-`new` 只建台账，不启动训练；`run_with_gate.py` 只负责"检查后启动或不启动"，不认证进程身份，也不代表你已经授权这次执行。只想核验时改用 `tools/check_config.py`。
+然后把目录交给 agent，说一句「按 AGENTS.md 开始，先建一个 baseline 并跑通」。建档、导出真实配置、过门禁都由它完成。想看台账时：
+
+```sh
+python tools/research.py list --json
+```
+
+手写命令的完整流程（声明 → 编号 → 门禁 → 启动）见 [examples/first-round.md](research-project-management/examples/first-round.md)。
 
 ## 目录
 
