@@ -28,7 +28,7 @@ class GroupedLedgerTests(unittest.TestCase):
 
     def invoke(self, *args, ok=True):
         proc = subprocess.run([sys.executable, str(self.root / "tools/research.py"), *args],
-                              cwd=self.root, text=True, capture_output=True)
+                              cwd=self.root, text=True, encoding="utf-8", capture_output=True)
         if ok:
             self.assertEqual(proc.returncode, 0, proc.stderr)
         else:

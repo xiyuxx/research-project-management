@@ -1,5 +1,10 @@
 # 变更记录
 
+## 0.2.2 — 2026-11-09
+
+- 脚本输出统一为 UTF-8：在 Windows 的 cp1252 管道理下，检查报告与台账命令不再因中文抛出 `UnicodeEncodeError`（`configure_output()`，不可用时可回退）。
+- 测试以 UTF-8 解码子进程输出，CI 的失败用例改为以注解形式暴露具体断言与 stderr。
+
 ## 0.2.1 — 2026-11-09
 
 - 台账锁按平台路由：Linux/macOS 用 `fcntl.flock`，Windows 用 SQLite 写事务（`BEGIN IMMEDIATE`）；不再在 import 阶段拒绝 Windows。

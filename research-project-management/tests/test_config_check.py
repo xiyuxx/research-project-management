@@ -25,7 +25,7 @@ class ConfigCheckTests(unittest.TestCase):
         process = subprocess.run([sys.executable, "-B", str(CHECKER),
                                   "--expected", str(self.expected),
                                   "--effective", str(self.effective), *extra],
-                                 capture_output=True, text=True)
+                                 capture_output=True, text=True, encoding="utf-8")
         return process.returncode, json.loads(process.stdout)
 
     def test_utf8_bom_is_accepted(self):

@@ -17,7 +17,7 @@ class InitProjectTests(unittest.TestCase):
 
     def invoke(self, *args, ok=True):
         process = subprocess.run([sys.executable, "-B", str(INIT), *args],
-                                 capture_output=True, text=True)
+                                 capture_output=True, text=True, encoding="utf-8")
         if ok:
             self.assertEqual(process.returncode, 0, process.stderr)
         else:
@@ -33,7 +33,7 @@ class InitProjectTests(unittest.TestCase):
         self.assertTrue((target / "tools/run_with_gate.py").is_file())
         self.assertIn("# Existing", (target / "README.md").read_text(encoding="utf-8"))
         agents = (target / "AGENTS.md").read_text(encoding="utf-8")
-        self.assertIn("research-project-management v0.2.1", agents)
+        self.assertIn("research-project-management v0.2.2", agents)
         self.assertNotIn("{{SKILL_VERSION}}", agents)
 
     def test_dry_run_and_nonempty_target_leave_no_files(self):

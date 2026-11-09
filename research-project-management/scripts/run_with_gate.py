@@ -12,6 +12,19 @@ from pathlib import Path
 import subprocess
 import sys
 
+
+def configure_output():
+    """Emit UTF-8 regardless of the console codepage; never crash on CJK."""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="backslashreplace")
+        except (AttributeError, ValueError, OSError):
+            pass
+
+
+configure_output()
+
+
 CHECKER = Path(__file__).with_name("check_config.py")
 
 

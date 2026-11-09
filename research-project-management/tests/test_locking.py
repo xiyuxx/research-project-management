@@ -18,7 +18,7 @@ class LockingTests(unittest.TestCase):
         self.project = self.root / "project"
         subprocess.run([sys.executable, "-B", str(INIT), str(self.project),
                         "--name", "Locking"], check=True,
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, encoding="utf-8")
         self.research = self.project / "tools" / "research.py"
 
     def environment(self, backend):
@@ -31,7 +31,7 @@ class LockingTests(unittest.TestCase):
 
     def run_research(self, *args, backend=None):
         return subprocess.run([sys.executable, "-B", str(self.research), *args],
-                              capture_output=True, text=True,
+                              capture_output=True, text=True, encoding="utf-8",
                               env=self.environment(backend))
 
     def test_auto_routing_picks_the_platform_backend(self):
@@ -77,19 +77,19 @@ class LockingTests(unittest.TestCase):
                 project = self.root / ("concurrent-" + backend)
                 subprocess.run([sys.executable, "-B", str(INIT), str(project),
                                 "--name", "Concurrent"], check=True,
-                               capture_output=True, text=True)
+                               capture_output=True, text=True, encoding="utf-8")
                 research = project / "tools" / "research.py"
                 processes = [
                     subprocess.Popen([sys.executable, "-B", str(research), "new",
                                       "--slug", "race-%d" % index, "--title", "Race %d" % index],
                                      stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                     text=True, env=self.environment(backend))
+                                     text=True, encoding="utf-8", env=self.environment(backend))
                     for index in range(4)]
                 for process in processes:
                     _, errors = process.communicate(timeout=120)
                     self.assertEqual(process.returncode, 0, errors)
                 listed = subprocess.run([sys.executable, "-B", str(research), "list", "--json"],
-                                        capture_output=True, text=True,
+                                        capture_output=True, text=True, encoding="utf-8",
                                         env=self.environment(backend))
                 self.assertEqual(listed.returncode, 0, listed.stderr)
                 identifiers = sorted(row["id"] for row in json.loads(listed.stdout))

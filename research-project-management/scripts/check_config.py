@@ -21,6 +21,18 @@ from pathlib import Path
 import sys
 
 
+def configure_output():
+    """Emit UTF-8 regardless of the console codepage; never crash on CJK."""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="backslashreplace")
+        except (AttributeError, ValueError, OSError):
+            pass
+
+
+configure_output()
+
+
 def unique_object(pairs):
     result = {}
     for key, value in pairs:

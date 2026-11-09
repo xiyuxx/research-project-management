@@ -29,7 +29,7 @@ class RunWithGateTests(unittest.TestCase):
         process = subprocess.run([sys.executable, "-B", str(GATE),
                                   "--expected", str(self.expected),
                                   "--effective", str(self.effective), *extra, "--", *command],
-                                 capture_output=True, text=True)
+                                 capture_output=True, text=True, encoding="utf-8")
         return process
 
     def test_matching_conditions_launch_the_command(self):
@@ -56,7 +56,7 @@ class RunWithGateTests(unittest.TestCase):
         process = subprocess.run([sys.executable, "-B", str(GATE),
                                   "--expected", str(self.expected),
                                   "--effective", str(self.effective)],
-                                 capture_output=True, text=True)
+                                 capture_output=True, text=True, encoding="utf-8")
         self.assertEqual(process.returncode, 2)
 
     def test_export_command_runs_first(self):

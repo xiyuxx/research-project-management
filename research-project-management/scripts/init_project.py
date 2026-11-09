@@ -9,6 +9,18 @@ import sys
 import tempfile
 
 
+def configure_output():
+    """Emit UTF-8 regardless of the console codepage; never crash on CJK."""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="backslashreplace")
+        except (AttributeError, ValueError, OSError):
+            pass
+
+
+configure_output()
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("target", type=Path)

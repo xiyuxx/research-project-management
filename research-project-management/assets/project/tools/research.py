@@ -15,6 +15,19 @@ import sys
 import tempfile
 from urllib.parse import quote
 
+
+def configure_output():
+    """Emit UTF-8 regardless of the console codepage; never crash on CJK."""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="backslashreplace")
+        except (AttributeError, ValueError, OSError):
+            pass
+
+
+configure_output()
+
+
 ROOT = Path(__file__).resolve().parents[1]
 LEDGER = ROOT / "experiments"
 STATUSES = ("planned", "running", "done", "blocked", "abandoned")
@@ -205,7 +218,6 @@ def group_path(identifier, existing):
     if len(matches) != 1 or ("-" in identifier[4:] and matches[0].name != identifier):
         fail("未找到研究组: " + identifier)
     return matches[0]
-
 
 
 def records():
