@@ -17,7 +17,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Unit tests
-        run: python -m unittest discover -s research-project-management/tests -v
+        shell: bash
+        run: |
+          set +e
+          python -m unittest discover -s research-project-management/tests -v > tests.log 2>&1
+          code=$?
+          if [ "$code" -ne 0 ]; then
+            tail -60 tests.log | while IFS= read -r line; do echo "::error::${line}"; done
+            tail -120 tests.log
+          fi
+          exit "$code"
       - name: Initialize and exercise a project
         run: |
           target="$(mktemp -d)"
@@ -70,7 +79,16 @@ jobs:
         with:
           python-version: "3.12"
       - name: Unit tests
-        run: python -m unittest discover -s research-project-management/tests -v
+        shell: bash
+        run: |
+          set +e
+          python -m unittest discover -s research-project-management/tests -v > tests.log 2>&1
+          code=$?
+          if [ "$code" -ne 0 ]; then
+            tail -60 tests.log | while IFS= read -r line; do echo "::error::${line}"; done
+            tail -120 tests.log
+          fi
+          exit "$code"
       - name: Initialize and exercise a project
         run: |
           target="$(mktemp -d)/proj"
