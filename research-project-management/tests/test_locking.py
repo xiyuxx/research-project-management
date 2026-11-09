@@ -50,10 +50,19 @@ class LockingTests(unittest.TestCase):
                                     backend="sqlite")
         self.assertEqual(created.returncode, 0, created.stderr)
         self.assertTrue((self.project / "experiments" / ".ledger.lock.db").is_file())
+        if os.name == "nt":
+            return
         second = self.run_research("new", "--slug", "forced-flock", "--title", "Forced flock",
                                    backend="flock")
         self.assertEqual(second.returncode, 0, second.stderr)
         self.assertTrue((self.project / "experiments" / ".ledger.lock").is_file())
+
+    @unittest.skipUnless(os.name == "nt", "只在 Windows 上验证 flock 不可用时的提示")
+    def test_missing_flock_points_to_sqlite(self):
+        rejected = self.run_research("new", "--slug", "no-flock", "--title", "No flock",
+                                     backend="flock")
+        self.assertEqual(rejected.returncode, 1)
+        self.assertIn("RESEARCH_LOCK=sqlite", rejected.stderr)
 
     def test_unknown_backend_is_rejected(self):
         rejected = self.run_research("new", "--slug", "reject", "--title", "Reject",
@@ -62,7 +71,8 @@ class LockingTests(unittest.TestCase):
         self.assertIn("RESEARCH_LOCK", rejected.stderr)
 
     def test_concurrent_writers_get_unique_ids(self):
-        for backend in ("flock", "sqlite"):
+        backends = ("sqlite",) if os.name == "nt" else ("flock", "sqlite")
+        for backend in backends:
             with self.subTest(backend=backend):
                 project = self.root / ("concurrent-" + backend)
                 subprocess.run([sys.executable, "-B", str(INIT), str(project),
