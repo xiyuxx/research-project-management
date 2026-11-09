@@ -4,6 +4,8 @@
 
 An Agent Skill for chat-driven research project management: grouped experiments, immutable configuration evidence, an append-only history, and a pre-execution configuration gate. Linux/macOS only.
 
+本仓库只分发一个 Skill。可安装内容全部在 [`research-project-management/`](research-project-management/) 内；外层只保留 README、LICENSE、CHANGELOG 和 GitHub 配置。安装或分发时只需要这个文件夹。
+
 ## 平台与依赖
 
 - Linux 或 macOS（台账使用 POSIX 文件锁）；Windows 不受支持
@@ -11,13 +13,26 @@ An Agent Skill for chat-driven research project management: grouped experiments,
 - 无第三方依赖
 - 工具不联网、不启动训练；只读写用户指定的项目目录
 
-## 安装
+## 只获取 Skill 文件夹
 
-仓库根目录就是 Skill 目录，`SKILL.md` 中的 `name` 必须与安装目录同名。
+GitHub 网页不支持直接下载子目录。二选一：
 
 ```sh
-git clone <仓库地址>
-cd research-project-management
+# 稀疏检出：只取 Skill 目录
+git clone --depth 1 --filter=blob:none --sparse <仓库地址> rp-skill
+cd rp-skill
+git sparse-checkout set research-project-management
+```
+
+或者下载整仓 zip，只复制其中的 `research-project-management/` 文件夹。
+
+## 安装
+
+`SKILL.md` 中的 `name` 必须与安装目录同名。
+
+```sh
+git clone <仓库地址> rp-skill
+cd rp-skill/research-project-management
 
 # Claude Code
 mkdir -p ~/.claude/skills
@@ -28,9 +43,11 @@ mkdir -p ~/.omp/agent/skills
 ln -sfn "$PWD" ~/.omp/agent/skills/research-project-management
 ```
 
-若宿主只支持复制安装，将整个目录复制为 `<skills-dir>/research-project-management/` 即可。
+若宿主只支持复制安装，将 `research-project-management/` 整个复制为 `<skills-dir>/research-project-management/`。
 
 ## 快速开始
+
+以下命令在 `research-project-management/`（Skill 目录）内执行。
 
 ```sh
 python scripts/init_project.py ~/research/demo --name "Demo" --dry-run
@@ -66,12 +83,20 @@ python tools/check_config.py \
 ## 目录结构
 
 ```text
-SKILL.md                     # Skill 入口与工作流
-references/config-check.md   # 配置门禁的输入契约与操作顺序
-scripts/init_project.py      # 初始化项目（仅 POSIX）
-scripts/check_config.py      # 配置比对与报告
-assets/project/              # 初始化模板：AGENTS/CURRENT/CHANGELOG/experiments 等
-tests/                       # 行为测试
+.
+├── README.md
+├── LICENSE
+├── CHANGELOG.md
+├── .gitattributes
+├── .gitignore
+├── .github/workflows/test.yml
+└── research-project-management/   # 只需要分发这个目录
+    ├── SKILL.md                   # Skill 入口与工作流
+    ├── references/config-check.md # 配置门禁的输入契约与操作顺序
+    ├── scripts/init_project.py    # 初始化项目（仅 POSIX）
+    ├── scripts/check_config.py    # 配置比对与报告
+    ├── assets/project/            # 初始化模板：AGENTS/CURRENT/CHANGELOG/experiments 等
+    └── tests/                     # 行为测试
 ```
 
 初始化后的项目由 `AGENTS.md`、`CURRENT.md`、`CHANGELOG.md`、`experiments/GRP-*/` 和每个 `EXP-*.md` 组成。`INDEX.md`、`NEXT.md`、`registry.json` 是可重建的派生视图；`EXP-*.md` 才是实验事实源。
@@ -79,7 +104,7 @@ tests/                       # 行为测试
 ## 开发与测试
 
 ```sh
-python -m unittest discover -s tests -v
+python -m unittest discover -s research-project-management/tests -v
 ```
 
 CI 在 `ubuntu-latest` 上覆盖 Python 3.10 与 3.12，并实际执行一次“初始化已存在空目录 → 建组 → 建档 → reindex”。

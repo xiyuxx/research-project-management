@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1 — 2026-11-09
+
+- 仓库布局：Skill 内容集中到 `research-project-management/`，外层仅保留 README、LICENSE、CHANGELOG 与 GitHub 配置
+- 安装、测试与 CI 路径同步调整
+
 ## 0.1.0 — 2026-11-09
 
 - 首次发布：聊天驱动的科研项目管理 Skill

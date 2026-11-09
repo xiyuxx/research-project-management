@@ -1,7 +1,7 @@
 ---
 name: research-project-management
 description: "通过人与 AI 的聊天从空目录建立和推进科研项目：按研究问题分组实验，保存全局与局部实际配置、环境及探索历史，更新当前快照和追加式变更日志；执行前主动检查真实生效配置。"
-version: 0.1.0
+version: 0.1.1
 license: MIT
 ---
 
