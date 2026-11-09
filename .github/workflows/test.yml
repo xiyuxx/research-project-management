@@ -1,0 +1,28 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Initialize and exercise a project
+        run: |
+          target="$(mktemp -d)"
+          python scripts/init_project.py "$target" --name "CI Project"
+          python "$target/tools/research.py" group-new --slug ci --title "CI"
+          python "$target/tools/research.py" new --group GRP-001 --slug baseline --title "Baseline"
+          python "$target/tools/research.py" reindex
+          python "$target/tools/research.py" list --json
