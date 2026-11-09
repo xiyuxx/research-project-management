@@ -1,5 +1,12 @@
 # 变更记录
 
+## 0.2.1 — 2026-11-09
+
+- 台账锁按平台路由：Linux/macOS 用 `fcntl.flock`，Windows 用 SQLite 写事务（`BEGIN IMMEDIATE`）；不再在 import 阶段拒绝 Windows。
+- `init_project.py` 去掉 POSIX 拦截，并修掉"目标已存在空目录"在 Windows 上 rename 失败的问题（先删空目录再原子改名）。
+- 测试去掉 POSIX 跳过，新增锁路由、显式后端覆盖、两种后端下的并发取号用例；CI 增加 `windows-latest` job。
+- `RESEARCH_LOCK=flock|sqlite` 可显式覆盖路由（仅测试或特殊环境）；同一项目不要混用两种锁。
+
 ## 0.2.0 — 2026-11-09
 
 - 新增 `scripts/run_with_gate.py`：先核验配置再启动命令，检查未通过时不运行任何命令；初始化时安装到项目 `tools/`。

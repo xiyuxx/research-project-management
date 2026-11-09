@@ -15,15 +15,10 @@ import sys
 import tempfile
 from urllib.parse import quote
 
-try:
-    import fcntl
-except ImportError:  # pragma: no cover - POSIX only
-    sys.stderr.write("错误: research.py 需要 POSIX 文件锁（Linux/macOS）；当前平台不受支持。\n")
-    raise SystemExit(1)
-
 ROOT = Path(__file__).resolve().parents[1]
 LEDGER = ROOT / "experiments"
 STATUSES = ("planned", "running", "done", "blocked", "abandoned")
+LOCK_BACKENDS = ("flock", "sqlite")
 REPEATED = {"next", "next_done", "constraint", "question", "decision"}
 RECORD = re.compile(r"^EXP-(\d{4,})-(.+)\.md$")
 GROUP = re.compile(r"^GRP-(\d{3,})-([a-z0-9]+(?:-[a-z0-9]+)*)$")
@@ -98,14 +93,49 @@ def atomic(path, content):
             os.unlink(temporary)
 
 
+def lock_backend():
+    """Linux/macOS use flock; Windows uses a SQLite write transaction.
+
+    flock is the native POSIX advisory lock: kernel-level, released on process
+    death, no extra file beyond the lock handle. Windows has no flock
+    equivalent in the standard library; msvcrt.locking only locks a byte range
+    and gives up after a short fixed retry, so this uses SQLite's blocking
+    BEGIN IMMEDIATE instead. RESEARCH_LOCK=flock|sqlite overrides the routing
+    (tests use it to exercise both paths on one machine).
+    """
+    chosen = os.environ.get("RESEARCH_LOCK", "auto")
+    if chosen == "auto":
+        chosen = "sqlite" if os.name == "nt" else "flock"
+    if chosen not in LOCK_BACKENDS:
+        fail("RESEARCH_LOCK 只能是 auto、flock 或 sqlite: " + chosen)
+    return chosen
+
+
 @contextmanager
 def locked():
-    with (LEDGER / ".ledger.lock").open("a") as handle:
-        fcntl.flock(handle, fcntl.LOCK_EX)
+    if lock_backend() == "flock":
         try:
-            yield
-        finally:
-            fcntl.flock(handle, fcntl.LOCK_UN)
+            import fcntl
+        except ImportError:
+            fail("当前平台没有 fcntl；请使用 RESEARCH_LOCK=sqlite")
+        with (LEDGER / ".ledger.lock").open("a") as handle:
+            fcntl.flock(handle, fcntl.LOCK_EX)
+            try:
+                yield
+            finally:
+                fcntl.flock(handle, fcntl.LOCK_UN)
+        return
+    import sqlite3
+    connection = sqlite3.connect(str(LEDGER / ".ledger.lock.db"), timeout=30)
+    try:
+        try:
+            connection.execute("BEGIN IMMEDIATE")
+        except sqlite3.OperationalError as exc:
+            fail("等待台账写锁超时（sqlite）: %s" % exc)
+        yield
+        connection.commit()
+    finally:
+        connection.close()
 
 
 def groups():

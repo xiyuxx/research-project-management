@@ -20,7 +20,7 @@ AI 读完当前状态后建档，得到 `EXP-0002-optimizer-lr-5e-4`，附一份
 
 ## 安装
 
-要求 Linux 或 macOS（台账使用 POSIX 文件锁）、Python 3.10+、无第三方依赖。`SKILL.md` 的 `name` 必须与安装目录同名。
+要求 Python 3.10+、无第三方依赖；台账锁按平台路由（Linux/macOS 用 flock，Windows 用 SQLite 事务）。`SKILL.md` 的 `name` 必须与安装目录同名。
 
 ```sh
 git clone <仓库地址> rp-skill
@@ -69,7 +69,7 @@ python tools/run_with_gate.py \
     ├── SKILL.md                        # 工作流与硬规则
     ├── examples/first-round.md         # 一个完整回合的成品形态
     ├── references/config-check.md      # 门禁的输入契约与操作顺序
-    ├── scripts/init_project.py         # 初始化（仅 POSIX）
+    ├── scripts/init_project.py         # 初始化（跨平台）
     ├── scripts/check_config.py         # 声明 vs 生效配置比对
     ├── scripts/run_with_gate.py        # 通过才启动命令
     ├── assets/project/                 # 初始化模板
@@ -80,7 +80,7 @@ python tools/run_with_gate.py \
 
 ## 已知边界
 
-- 只支持 Linux/macOS；Windows 需要替换台账的文件锁实现。
+- 锁按平台路由：Linux/macOS 用 `flock`，Windows 用 SQLite 写事务；同一项目不要用 `RESEARCH_LOCK` 混用两种锁。Windows 上会多一个 `experiments/.ledger.lock.db`。
 - 不联网、不下载数据、不自动启动训练或外部提交。
 - 配置门禁只比对声明字段与两个输入文件；拿不到真实导出时技能会要求记"未核验"并停下，但无法替你验证导出文件真的来自那个进程。
 - 升级 Skill 不会改写已初始化的项目；迁移需要显式操作。

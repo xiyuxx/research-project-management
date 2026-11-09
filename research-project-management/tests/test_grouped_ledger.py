@@ -1,6 +1,5 @@
 import concurrent.futures
 import json
-import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -12,7 +11,6 @@ import unittest
 SCRIPT = Path(__file__).resolve().parents[1] / "assets/project/tools/research.py"
 
 
-@unittest.skipUnless(os.name == "posix", "research.py requires POSIX file locks")
 class GroupedLedgerTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

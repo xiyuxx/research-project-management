@@ -58,3 +58,26 @@ jobs:
           set -e
           test "$code" -eq 1
           ! grep -q "must not run" "$target/out.txt"
+
+  windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Unit tests
+        run: python -m unittest discover -s research-project-management/tests -v
+      - name: Initialize and exercise a project
+        run: |
+          target="$(mktemp -d)/proj"
+          winpath() { cygpath -w "$1"; }
+          python research-project-management/scripts/init_project.py "$(winpath "$target")" --name "CI Windows"
+          python "$(winpath "$target/tools/research.py")" group-new --slug ci --title "CI"
+          python "$(winpath "$target/tools/research.py")" new --group GRP-001 --slug baseline --title "Baseline"
+          python "$(winpath "$target/tools/research.py")" reindex
+          python "$(winpath "$target/tools/research.py")" list --json
+          test -f "$target/experiments/.ledger.lock.db"

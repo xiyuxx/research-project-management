@@ -48,4 +48,4 @@ python tools/run_with_gate.py \
 
 - 初始化只建模板与工具，不产生实验、不训练、不联网。
 - 已有文件不覆盖；旧记录不自动迁移，迁移须明确授权。
-- 台账依赖 POSIX 文件锁，Linux/macOS 可用，需要 Python 3.10+。
+- 台账锁按平台路由：Linux/macOS 用 flock，Windows 用 SQLite 事务；需要 Python 3.10+。

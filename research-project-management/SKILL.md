@@ -1,7 +1,7 @@
 ---
 name: research-project-management
 description: "通过聊天建立和推进科研项目：按研究问题分组实验，保存全局与局部实际配置、环境及探索历史，维护当前快照和追加式变更日志，执行前核验真实生效配置。用于新建或整理科研项目、记录或对比实验、核对训练/评估配置、维护实验历史；纯写作、教学作业、生产部署或一次性脚本任务不使用。"
-version: 0.2.0
+version: 0.2.1
 license: MIT
 ---
 
@@ -83,7 +83,7 @@ python "$SKILL_DIR/scripts/init_project.py" /path/to/new-project --name "研究�
 python "$SKILL_DIR/scripts/init_project.py" /path/to/new-project --name "研究项目"
 ```
 
-仅支持带 POSIX 文件锁的 Linux 与 macOS，需要 Python 3.10+，无需第三方依赖；Windows 不受支持。目标必须不存在或为空，符号链接/非空目标拒绝，预览不写。初始化只创建模板和工具，不创造研究结果、不训练；生成项目的 AGENTS.md 里记录初始化所用 skill 版本，便于以后判断是否需要迁移。
+需要 Python 3.10+，无第三方依赖。台账锁按平台自动路由：Linux/macOS 用 `flock`（`experiments/.ledger.lock`），Windows 用 SQLite 写事务（`experiments/.ledger.lock.db`）；`RESEARCH_LOCK=flock|sqlite` 只用于测试或显式覆盖，同一项目不要混用。目标必须不存在或为空，符号链接/非空目标拒绝，预览不写。初始化只创建模板和工具，不创造研究结果、不训练；生成项目的 AGENTS.md 里记录初始化所用 skill 版本，便于以后判断是否需要迁移。
 
 旧平铺 EXP 继续可读，旧 ID、命令、旧产物位置及重复标量 front matter 保持；不默认移动，不猜旧 next 是待办、已完成或约束。已有文档、参数和研究结论保留原样，迁移须由用户明确要求、先备份并验证引用；旧工具和新工具不可双写同一台账。升级 skill 不自动改已经创建的项目，用户允许后再独立迁移。
 

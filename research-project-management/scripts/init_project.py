@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Initialize a new POSIX research workspace without dependencies or overwrites."""
+"""Initialize a new cross-platform research workspace without dependencies or overwrites."""
 import argparse
 import os
 from pathlib import Path
@@ -15,8 +15,6 @@ def main():
     parser.add_argument("--name", required=True)
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
-    if os.name != "posix":
-        parser.error("仅支持 Linux/macOS（POSIX 文件锁）；当前平台不受支持")
     if not args.name.strip() or "\n" in args.name or "\r" in args.name:
         parser.error("--name 必须是非空单行文本")
     target = args.target.expanduser().absolute()
@@ -72,6 +70,9 @@ def main():
         if target.is_symlink() or (target.exists() and
                                   (not target.is_dir() or any(target.iterdir()))):
             parser.error("目标在初始化期间出现冲突；未写入目标")
+        # Windows cannot rename onto an existing directory, even an empty one.
+        if target.exists():
+            target.rmdir()
         os.rename(str(stage), str(target))
     finally:
         if stage.exists():
