@@ -75,7 +75,7 @@ python tools/research.py list --json
     ├── scripts/init_project.py         # 初始化（跨平台）
     ├── scripts/check_config.py         # 声明 vs 生效配置比对
     ├── scripts/run_with_gate.py        # 通过才启动命令
-    ├── assets/project/                 # 初始化模板（含 ideas/ 暂存区）
+    ├── template/                       # 初始化模板（含 ideas/ 暂存区）
     └── tests/                          # 行为测试
 ```
 
@@ -86,7 +86,7 @@ python tools/research.py list --json
 - 锁按平台路由：Linux/macOS 用 `flock`，Windows 用 SQLite 写事务；同一项目不要用 `RESEARCH_LOCK` 混用两种锁。Windows 上会多一个 `experiments/.ledger.lock.db`。
 - 不联网、不下载数据、不自动启动训练或外部提交。
 - 配置门禁只比对声明字段与两个输入文件；拿不到真实导出时技能会要求记"未核验"并停下，但无法替你验证导出文件真的来自那个进程。
-- 升级 Skill 不会改写已初始化的项目；迁移需要显式操作。0.3.0 之前初始化的项目没有 `ideas/`，补上时把 skill 的 `assets/project/ideas/` 整个复制到项目根即可。
+- 升级 Skill 不会改写已初始化的项目；迁移需要显式操作。0.3.0 之前初始化的项目没有 `ideas/`，补上时把 skill 的 `template/ideas/` 整个复制到项目根即可。
 - `ideas/` 不进入索引与派生视图；`idea-new` 只按模板建档并校验编号、文件名与 `status` 取值，想法是否值得做仍然只能由人判断。
 
 ## 版本

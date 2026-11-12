@@ -8,7 +8,7 @@ import tempfile
 import unittest
 
 
-ASSETS = Path(__file__).resolve().parents[1] / "assets" / "project"
+ASSETS = Path(__file__).resolve().parents[1] / "template"
 SCRIPT = ASSETS / "tools" / "research.py"
 
 

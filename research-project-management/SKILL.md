@@ -86,6 +86,6 @@ python "$SKILL_DIR/scripts/init_project.py" /path/to/new-project --name "研究�
 
 需要 Python 3.10+，无第三方依赖。台账锁按平台自动路由：Linux/macOS 用 `flock`（`experiments/.ledger.lock`），Windows 用 SQLite 写事务（`experiments/.ledger.lock.db`）；`RESEARCH_LOCK=flock|sqlite` 只用于测试或显式覆盖，同一项目不要混用。目标必须不存在或为空，符号链接/非空目标拒绝，预览不写。初始化只创建模板和工具，不创造研究结果、不训练；生成项目的 AGENTS.md 里记录初始化所用 skill 版本，便于以后判断是否需要迁移。
 
-旧平铺 EXP 继续可读，旧 ID、命令、旧产物位置及重复标量 front matter 保持；不默认移动，不猜旧 next 是待办、已完成或约束。已有文档、参数和研究结论保留原样，迁移须由用户明确要求、先备份并验证引用；旧工具和新工具不可双写同一台账。升级 skill 不自动改已经创建的项目，用户允许后再独立迁移。旧项目补 `ideas/` 只需把本 skill 的 `assets/project/ideas/` 整个复制到项目根，不改动既有记录。
+旧平铺 EXP 继续可读，旧 ID、命令、旧产物位置及重复标量 front matter 保持；不默认移动，不猜旧 next 是待办、已完成或约束。已有文档、参数和研究结论保留原样，迁移须由用户明确要求、先备份并验证引用；旧工具和新工具不可双写同一台账。升级 skill 不自动改已经创建的项目，用户允许后再独立迁移。旧项目补 `ideas/` 只需把本 skill 的 `template/ideas/` 整个复制到项目根，不改动既有记录。
 
 执行器/队列、多代码树、指标报表、外部数据模型溯源只在真实需求出现时接入；不默认引入数据库、任务调度或多 agent。多 seed、更多消融和论文级确认按研究证据与成本安排，不把短跑或单 seed 扩大成普遍结论。

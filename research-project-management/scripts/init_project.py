@@ -30,12 +30,12 @@ def main():
     if not args.name.strip() or "\n" in args.name or "\r" in args.name:
         parser.error("--name 必须是非空单行文本")
     target = args.target.expanduser().absolute()
-    source = Path(__file__).resolve().parents[1] / "assets" / "project"
+    source = Path(__file__).resolve().parents[1] / "template"
     files = sorted(path for path in source.rglob("*")
                    if path.is_file() and "__pycache__" not in path.parts
                    and path.suffix not in (".pyc", ".pyo"))
     if not files:
-        parser.error("技能缺少 assets/project 模板")
+        parser.error("技能缺少 template 目录")
     checker = Path(__file__).with_name("check_config.py")
     gate = Path(__file__).with_name("run_with_gate.py")
     skill = Path(__file__).resolve().parents[1] / "SKILL.md"

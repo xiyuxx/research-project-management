@@ -1,5 +1,9 @@
 # 变更记录
 
+## 未发布
+
+- 初始化模板由 `assets/project/` 改为 `template/`：`assets/` 下只有这一个子目录，白白多一层；模板与技能实现（`SKILL.md`、`scripts/`、`tests/`）的边界仍由目录本身表达，复制逻辑仍是整目录 `rglob`，不需要文件白名单。`init_project.py`、测试、文档及 `idea-new` 的迁移提示同步更新；生成的项目内容不变。
+
 ## 0.3.0 — 2026-11-12
 
 - 新增 `ideas/`：只在讨论阶段、与当前方案关系不大或暂不推进的想法的暂存区（`IDEA-NNN-slug.md` + 模板 + 规则）。明确它不进入 INDEX/NEXT/registry、不作证据、不成为隐含下一步；推进须由用户决定，追加 CHANGELOG 并建 EXP（或改 CURRENT），想法文件只改 `status` 与指向。

@@ -504,7 +504,7 @@ def idea_records():
 
 def idea_new(args):
     if not IDEAS.is_dir() or not (IDEAS / "_template.md").is_file():
-        fail("缺少 ideas/_template.md；先从 skill 的 assets/project/ideas 复制整个目录")
+        fail("缺少 ideas/_template.md；先从 skill 的 template/ideas 复制整个目录")
     slug = normalize_slug(args.slug)
     title = scalar(args.title)
     if not title:

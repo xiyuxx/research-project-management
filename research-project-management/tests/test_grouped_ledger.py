@@ -8,7 +8,7 @@ import tempfile
 import unittest
 
 
-SCRIPT = Path(__file__).resolve().parents[1] / "assets/project/tools/research.py"
+SCRIPT = Path(__file__).resolve().parents[1] / "template/tools/research.py"
 
 
 class GroupedLedgerTests(unittest.TestCase):
