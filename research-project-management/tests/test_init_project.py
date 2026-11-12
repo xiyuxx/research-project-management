@@ -35,7 +35,7 @@ class InitProjectTests(unittest.TestCase):
         self.assertTrue((target / "ideas/_template.md").is_file())
         self.assertIn("# Existing", (target / "README.md").read_text(encoding="utf-8"))
         agents = (target / "AGENTS.md").read_text(encoding="utf-8")
-        self.assertIn("research-project-management v0.3.0", agents)
+        self.assertIn("research-project-management v0.3.1", agents)
         self.assertNotIn("{{SKILL_VERSION}}", agents)
 
     def test_dry_run_and_nonempty_target_leave_no_files(self):

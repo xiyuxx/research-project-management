@@ -91,7 +91,7 @@ python tools/research.py list --json
 
 ## 版本
 
-当前 0.3.0，变更见 [CHANGELOG.md](CHANGELOG.md)。初始化出的项目在 `AGENTS.md` 顶部记录所用版本，便于以后判断是否需要迁移。
+当前 0.3.1，变更见 [CHANGELOG.md](CHANGELOG.md)。初始化出的项目在 `AGENTS.md` 顶部记录所用版本，便于以后判断是否需要迁移。
 
 ## 许可
 
