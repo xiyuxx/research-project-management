@@ -35,6 +35,7 @@ jobs:
           python "$target/tools/research.py" new --group GRP-001 --slug baseline --title "Baseline"
           python "$target/tools/research.py" reindex
           python "$target/tools/research.py" list --json
+          python "$target/tools/research.py" idea-new --slug moe-fusion --title "MoE routing"
       - name: Exercise the configuration gate
         run: |
           target="$(mktemp -d)"
@@ -98,4 +99,5 @@ jobs:
           python "$(winpath "$target/tools/research.py")" new --group GRP-001 --slug baseline --title "Baseline"
           python "$(winpath "$target/tools/research.py")" reindex
           python "$(winpath "$target/tools/research.py")" list --json
+          python "$(winpath "$target/tools/research.py")" idea-new --slug moe-fusion --title "MoE routing"
           test -f "$target/experiments/.ledger.lock.db"

@@ -1,8 +1,12 @@
 # 变更记录
 
-## 未发布
+## 0.3.0 — 2026-11-12
 
-- README 动机段重写：改为「没有 skill 时的四个默认失效点 → 对应的结构约束」，去掉不贴切的命名错配例子。
+- 新增 `ideas/`：只在讨论阶段、与当前方案关系不大或暂不推进的想法的暂存区（`IDEA-NNN-slug.md` + 模板 + 规则）。明确它不进入 INDEX/NEXT/registry、不作证据、不成为隐含下一步；推进须由用户决定，追加 CHANGELOG 并建 EXP（或改 CURRENT），想法文件只改 `status` 与指向。
+- 新增 `tools/research.py idea-new`：分配项目内唯一的 IDEA 编号、按项目 `ideas/_template.md` 建档、原子写入；不建实验、不改派生视图；`status` 只允许 parked/promoted/dropped。
+- 生成的 `AGENTS.md`/`README.md`/`CURRENT.md`/`experiments/README.md` 增加约定：默认不读 `ideas/`，与当前方案无关的候选不塞进 CURRENT 或 EXP。
+- 旧项目补 `ideas/` 只需复制 `assets/project/ideas/`；初始化器不碰既有项目。
+- README 动机段重写：改为「没有 skill 时的五个默认失效点 → 对应的结构约束」，去掉不贴切的命名错配例子。
 - 快速开始简化为「初始化 → 交给 agent」，手写命令移交给 `examples/first-round.md`。
 
 ## 0.2.2 — 2026-11-09

@@ -30,10 +30,13 @@ configure_output()
 
 ROOT = Path(__file__).resolve().parents[1]
 LEDGER = ROOT / "experiments"
+IDEAS = ROOT / "ideas"
 STATUSES = ("planned", "running", "done", "blocked", "abandoned")
+IDEA_STATUSES = ("parked", "promoted", "dropped")
 LOCK_BACKENDS = ("flock", "sqlite")
 REPEATED = {"next", "next_done", "constraint", "question", "decision"}
 RECORD = re.compile(r"^EXP-(\d{4,})-(.+)\.md$")
+IDEA = re.compile(r"^IDEA-(\d{4,})-(.+)\.md$")
 GROUP = re.compile(r"^GRP-(\d{3,})-([a-z0-9]+(?:-[a-z0-9]+)*)$")
 KEY = re.compile(r"^[A-Za-z_][A-Za-z0-9_.-]*$")
 
@@ -479,6 +482,50 @@ def new(args):
     print(path.relative_to(ROOT))
 
 
+def idea_records():
+    result, seen = [], set()
+    for path in sorted(IDEAS.glob("IDEA-*.md")):
+        match = IDEA.fullmatch(path.name)
+        if not match or path.is_symlink():
+            fail("无法识别或冲突的想法文件: %s" % path.name)
+        number = int(match.group(1))
+        expected = "IDEA-%04d" % number
+        if number < 1 or expected in seen:
+            fail("想法编号无效或重复: %s" % path.name)
+        fm, _ = parse(path)
+        if fm.get("id") != expected:
+            fail("想法编号与文件名不符: %s" % path.name)
+        if fm.get("status") not in IDEA_STATUSES:
+            fail("%s: status 必须是 %s" % (path.name, ", ".join(IDEA_STATUSES)))
+        seen.add(expected)
+        result.append((number, path))
+    return result
+
+
+def idea_new(args):
+    if not IDEAS.is_dir() or not (IDEAS / "_template.md").is_file():
+        fail("缺少 ideas/_template.md；先从 skill 的 assets/project/ideas 复制整个目录")
+    slug = normalize_slug(args.slug)
+    title = scalar(args.title)
+    if not title:
+        fail("想法标题不能为空")
+    with locked():
+        existing = idea_records()
+        counter = IDEAS / ".next-idea-id"
+        number = next_number(counter, [item[0] for item in existing])
+        identifier = "IDEA-%04d" % number
+        path = IDEAS / (identifier + "-" + slug + ".md")
+        if path.exists() or path.is_symlink():
+            fail("想法路径冲突: " + path.name)
+        fm = {"id": identifier, "slug": slug, "title": title, "status": "parked",
+              "created": date.today().isoformat(), "updated": date.today().isoformat()}
+        _, body = parse(IDEAS / "_template.md")
+        # Reserve first: a failed write may skip an ID but never reuses one.
+        atomic(counter, str(number + 1) + "\n")
+        atomic(path, render(fm, body))
+    print(path.relative_to(ROOT))
+
+
 def set_record(args):
     with locked():
         rows = records()
@@ -594,6 +641,10 @@ def main():
     p.add_argument("--status", choices=STATUSES, default="planned")
     p.add_argument("--next", action="append", default=[])
     p.set_defaults(func=new)
+    p = commands.add_parser("idea-new", help="暂存一条与当前方案无关的想法；不进实验台账")
+    p.add_argument("--slug", required=True)
+    p.add_argument("--title", required=True)
+    p.set_defaults(func=idea_new)
     p = commands.add_parser("set", help="修改标量字段与后续工作")
     p.add_argument("id")
     p.add_argument("field", nargs="*")

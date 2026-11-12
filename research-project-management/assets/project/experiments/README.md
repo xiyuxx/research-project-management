@@ -10,6 +10,8 @@ EXP 是单次实验实际事实与证据的权威记录；INDEX、registry、NEX
 
 主题尚未确定仍可用 `new --slug baseline --title "基线核对"` 建平铺实验。既有平铺记录继续可读，不自动迁移。组与平铺实验共用编号空间。
 
+只是讨论过、还没决定推进的想法不进 EXP：放 `ideas/`，由用户决定推进后再建档。
+
 ## 记录与状态
 
 front matter 是单行标量，重复键表示多项，不是完整 YAML；`next` 是开放任务，`next_done` 是人工确认的完成项，`constraint` 是边界。`--complete-next` 精确完成开放任务；`--clear-next` 只清除而不伪称完成。旧 next 的分类须人工确认。

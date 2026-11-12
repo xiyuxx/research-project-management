@@ -10,6 +10,7 @@
 | 某次实验到底怎么跑的、结果如何 | `experiments/GRP-*/EXP-*.md`（唯一事实源） |
 | 某个决定何时、为什么改 | `CHANGELOG.md`（只追加） |
 | 比较协议、数据与指标口径 | `SETTINGS.md` |
+| 只在讨论、暂不推进的想法 | `ideas/IDEA-*.md`（暂存，不是计划或证据） |
 | AI 的读写规则、证据底线 | `AGENTS.md` |
 
 `INDEX.md`、`NEXT.md`、`registry.json` 和带 `ledger:` 标记的区块都是可重建的派生视图，别把它们当事实源。
@@ -26,6 +27,7 @@ python tools/research.py list --json
 python tools/research.py show EXP-0001
 python tools/research.py reindex
 python tools/research.py status
+python tools/research.py idea-new --slug moe-fusion --title "MoE 路由替代 concat"  # 暂存想法，不进台账
 ```
 
 用 `--expected` 建档时，实验名由声明里的字段和值生成（`--name-field` 选展示字段，`--label` 起短名）；编号与名称以记录为准，不从文件名猜配置。`run_dir`、`code`、`config` 可用 `set` 登记，目录存在不代表进程存活。

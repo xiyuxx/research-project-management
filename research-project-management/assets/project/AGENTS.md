@@ -4,7 +4,7 @@
 
 ## 聊天与授权
 
-研究由人与 AI 在聊天中推进。先读本文件、SETTINGS.md、CURRENT.md 和 experiments/INDEX.md，再按问题读取相关组 README、EXP 和 CHANGELOG；不预加载所有历史。先以最小对照验证价值，再根据证据补充归因和确认，不默认大型实验矩阵。AI 维护必要记录，报告有证据的现状并提出一个下一步；不要自动启动训练。
+研究由人与 AI 在聊天中推进。先读本文件、SETTINGS.md、CURRENT.md 和 experiments/INDEX.md，再按问题读取相关组 README、EXP 和 CHANGELOG；不预加载所有历史；`ideas/` 默认不读，只有用户提到旧想法或需要方向候选时再读相关文件。先以最小对照验证价值，再根据证据补充归因和确认，不默认大型实验矩阵。AI 维护必要记录，报告有证据的现状并提出一个下一步；不要自动启动训练。
 
 训练、下载数据、外部提交或移动/删除旧产物前必须获得实际用户授权。CURRENT 的人工区维护当前授权、资源与禁止事项；没有记录不能推断已授权。本文件可以补充更严的规则，不能放宽 skill 的写入范围、证据底线或执行授权；冲突时以更严的一侧为准。
 
@@ -13,6 +13,7 @@
 - EXP 是每次实验实际条件、运行、评估和证据的权威记录；编号全局唯一。研究主题按 experiments/GRP-NNN-slug/ 分组，主题尚未确定可使用平铺实验；旧平铺记录仍可读，不自动迁移。
 - 组 README 维护当前研究问题、起点、共同条件快照、探索变量和当前判断；实验结果汇总由 EXP 派生，不另行手工维护同一事实。组判断变化的重要历史追加 CHANGELOG。
 - CURRENT 是可随时修改的当前全局配方、模块选定值及证据、方向、边界和交接；CHANGELOG 只追加重要研究事件、全局/局部尝试、数据与 EXP 证据及历史更正。SETTINGS 记录当前协议；reviews 保存必要的深入解释，runs 保存实际产物。
+- `ideas/IDEA-NNN-slug.md` 只保存仅在讨论、与当前方案无关或暂不推进的候选：想法、动机、为什么不并进当前方案、重新评估的条件。它不是计划、决定或证据，不写执行状态与结果，不进入 INDEX/NEXT/registry，也不能成为隐含下一步。推进须用户明确决定：追加 CHANGELOG 并建 EXP（或改 CURRENT），想法只改 `status` 与指向。新建用 `python tools/research.py idea-new --slug <ascii-slug> --title "..."`。
 - INDEX、registry、NEXT、CURRENT 摘要及组 README 标记内的汇总为派生视图，不保存唯一人工事实。台账操作使用 `python tools/research.py`，不要与旧工具双写；已有项目不自动迁移。
 - front matter 为单行标量，重复键表示多项，不是通用 YAML。`next`、`next_done`、`constraint` 分别表示开放任务、已完成任务和边界。执行状态与人工解释状态独立；done 不自动清空 next 或完成解释。
 
